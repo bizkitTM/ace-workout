@@ -191,6 +191,24 @@ export const INITIAL_RULES: DecisionRule[] = [
 
 export const INITIAL_LOGS: WorkoutLog[] = [
   {
+    id: 'log-2026-11-16',
+    date: '2026-11-16',
+    dayOfWeek: 'Monday',
+    title: 'Monday Upper Body (Chest & Push Focus)',
+    modality: 'Resistance (Upper)',
+    completed: true,
+    durationMinutes: 45,
+    legFatigueRating: 2,
+    rpe: 8,
+    exercises: [
+      { id: '1', name: 'Barbell Bench Press', sets: 4, reps: '6, 6, 6, 2', weight: '72, 92, 112, 117 lbs' },
+      { id: '2', name: 'Dumbbell Flys', sets: 3, reps: '6, 6, 6', weight: '25, 30, 35 lbs' },
+      { id: '3', name: 'Dumbbell Press', sets: 3, reps: '6, 6, 6', weight: '25, 30, 35 lbs' },
+      { id: '4', name: 'Dumbbell Pullovers', sets: 3, reps: '6, 6, 6', weight: '25, 40, 55 lbs' }
+    ],
+    notes: 'Solid chest/push session. Pyramid loading up to 117 lbs on bench press, finished with heavy 55 lb pullovers. Zero leg fatigue carryover before Tuesday volleyball.'
+  },
+  {
     id: 'log-2026-11-15',
     date: '2026-11-15',
     dayOfWeek: 'Sunday',
