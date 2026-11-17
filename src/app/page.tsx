@@ -27,24 +27,62 @@ export default function Home() {
   const [rules, setRules] = useState<DecisionRule[]>(INITIAL_RULES);
   const [logs, setLogs] = useState<WorkoutLog[]>(INITIAL_LOGS);
   const [selectedDayForLog, setSelectedDayForLog] = useState<DayOfWeek>('Saturday');
+  const [redisConnected, setRedisConnected] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
 
-  // Hydrate from localStorage
+  // 1. Initial hydration from localStorage
   useEffect(() => {
     setSchedule(getStoredSchedule());
     setRules(getStoredRules());
     setLogs(getStoredLogs());
 
-    // Auto-detect current day of week
     const currentDayIndex = new Date().getDay();
     setSelectedDayForLog(DAYS_OF_WEEK[currentDayIndex]);
+
+    // 2. Fetch latest data from Redis API
+    const syncFromRedis = async () => {
+      try {
+        const res = await fetch('/api/workout');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.schedule && data.schedule.length > 0) {
+            setSchedule(data.schedule);
+            saveStoredSchedule(data.schedule);
+          }
+          if (data.rules && data.rules.length > 0) {
+            setRules(data.rules);
+            saveStoredRules(data.rules);
+          }
+          if (data.logs && data.logs.length > 0) {
+            setLogs(data.logs);
+            saveStoredLogs(data.logs);
+          }
+          setRedisConnected(Boolean(data.redisConnected));
+        }
+      } catch (err) {
+        console.warn('Could not sync with Redis, running in local mode:', err);
+        setRedisConnected(false);
+      }
+    };
+
+    syncFromRedis();
   }, []);
 
-  const handleUpdateDay = (updatedDay: DaySchedule) => {
+  const handleUpdateDay = async (updatedDay: DaySchedule) => {
     const updated = schedule.map((d) => (d.dayOfWeek === updatedDay.dayOfWeek ? updatedDay : d));
     setSchedule(updated);
     saveStoredSchedule(updated);
+
+    try {
+      await fetch('/api/workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveSchedule', data: updated }),
+      });
+    } catch (e) {
+      console.warn('Failed to save schedule to Redis API:', e);
+    }
   };
 
   const handleSelectDayForLog = (day: DayOfWeek) => {
@@ -52,30 +90,75 @@ export default function Home() {
     setActiveTab('tracker');
   };
 
-  const handleSaveLog = (newLog: WorkoutLog) => {
-    const updated = [newLog, ...logs];
+  const handleSaveLog = async (newLog: WorkoutLog) => {
+    // Optimistic local update
+    const updated = [newLog, ...logs.filter((l) => l.id !== newLog.id)];
     setLogs(updated);
     saveStoredLogs(updated);
+
+    // Sync to Redis
+    try {
+      const res = await fetch('/api/workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveLog', data: newLog }),
+      });
+      if (res.ok) {
+        setRedisConnected(true);
+      }
+    } catch (e) {
+      console.warn('Failed to save log to Redis API:', e);
+    }
   };
 
-  const handleDeleteLog = (id: string) => {
+  const handleDeleteLog = async (id: string) => {
     if (confirm('Delete this workout log?')) {
       const updated = logs.filter((l) => l.id !== id);
       setLogs(updated);
       saveStoredLogs(updated);
+
+      try {
+        await fetch('/api/workout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'deleteLog', data: { id } }),
+        });
+      } catch (e) {
+        console.warn('Failed to delete log from Redis API:', e);
+      }
     }
   };
 
-  const handleAddRule = (newRule: DecisionRule) => {
+  const handleAddRule = async (newRule: DecisionRule) => {
     const updated = [newRule, ...rules];
     setRules(updated);
     saveStoredRules(updated);
+
+    try {
+      await fetch('/api/workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveRules', data: updated }),
+      });
+    } catch (e) {
+      console.warn('Failed to save rules to Redis API:', e);
+    }
   };
 
-  const handleUpdateRuleStatus = (id: string, status: DecisionRule['status']) => {
+  const handleUpdateRuleStatus = async (id: string, status: DecisionRule['status']) => {
     const updated = rules.map((r) => (r.id === id ? { ...r, status } : r));
     setRules(updated);
     saveStoredRules(updated);
+
+    try {
+      await fetch('/api/workout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'saveRules', data: updated }),
+      });
+    } catch (e) {
+      console.warn('Failed to update rule in Redis API:', e);
+    }
   };
 
   const handleExport = () => {
@@ -109,6 +192,7 @@ export default function Home() {
         setActiveTab={setActiveTab}
         onExport={handleExport}
         onImport={() => setImportModalOpen(true)}
+        redisConnected={redisConnected}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">

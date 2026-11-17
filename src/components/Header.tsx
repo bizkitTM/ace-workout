@@ -1,16 +1,23 @@
 'use client';
 
 import React from 'react';
-import { Calendar, CheckCircle2, BookOpen, BarChart3, Dumbbell, ShieldCheck, Download, Upload } from 'lucide-react';
+import { Calendar, CheckCircle2, BookOpen, BarChart3, Dumbbell, Download, Upload } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'planner' | 'tracker' | 'rules' | 'volume';
   setActiveTab: (tab: 'planner' | 'tracker' | 'rules' | 'volume') => void;
   onExport: () => void;
   onImport: () => void;
+  redisConnected: boolean;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onExport, onImport }) => {
+export const Header: React.FC<HeaderProps> = ({
+  activeTab,
+  setActiveTab,
+  onExport,
+  onImport,
+  redisConnected,
+}) => {
   return (
     <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,6 +34,17 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab, onExpor
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                   ace-workout
                 </span>
+                {redisConnected ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Redis Synced
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                    Local Mode
+                  </span>
+                )}
               </div>
               <p className="text-xs sm:text-sm text-slate-400">
                 Optimized for 3x Volleyball · Saturday Leg Anchor · VO2 Max &amp; Resistance
