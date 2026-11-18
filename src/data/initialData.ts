@@ -220,37 +220,5 @@ export const INITIAL_LOGS: WorkoutLog[] = [
       { id: '4', name: 'Dumbbell Pullovers', sets: 3, reps: '6, 6, 6', weight: '25, 40, 55 lbs' }
     ],
     notes: 'Solid chest/push session. Pyramid loading up to 117 lbs on bench press, finished with heavy 55 lb pullovers. Zero leg fatigue carryover before Tuesday volleyball.'
-  },
-  {
-    id: 'log-2026-11-15',
-    date: '2026-11-15',
-    dayOfWeek: 'Sunday',
-    title: 'Sunday Volleyball League Matches',
-    modality: 'Volleyball',
-    completed: true,
-    durationMinutes: 110,
-    legFatigueRating: 4,
-    rpe: 8,
-    notes: 'Intense match play. High active calorie burn (~1,700 kcal). Jump power felt solid. Knees felt good after pre-match dynamic band warmup.',
-    ouraReadinessScore: 70
-  },
-  {
-    id: 'log-2026-11-14',
-    date: '2026-11-14',
-    dayOfWeek: 'Saturday',
-    title: 'Saturday Lower Body Strength Anchor',
-    modality: 'Resistance (Lower)',
-    completed: true,
-    durationMinutes: 55,
-    legFatigueRating: 3,
-    rpe: 7,
-    exercises: [
-      { id: '1', name: 'Trap Bar Deadlift', sets: 4, reps: '8 reps', weight: '205 lbs' },
-      { id: '2', name: 'Goblet Box Squats', sets: 3, reps: '10 reps', weight: '60 lbs' },
-      { id: '3', name: 'Romanian Deadlifts (Dumbbells)', sets: 3, reps: '12 reps', weight: '50 lbs DBs' },
-      { id: '4', name: 'Bulgarian Split Squats', sets: 3, reps: '8/leg', weight: 'Bodyweight + 25 lbs' }
-    ],
-    notes: 'Felt great having a dedicated leg day with zero volleyball immediately before or after. Hamstrings felt engaged.',
-    ouraReadinessScore: 76
   }
 ];
