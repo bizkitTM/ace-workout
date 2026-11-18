@@ -1,13 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Calendar, CheckCircle2, BookOpen, BarChart3, Dumbbell, Download, Upload } from 'lucide-react';
+import { Calendar, CheckCircle2, BookOpen, BarChart3, Dumbbell, Download, Upload, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'planner' | 'tracker' | 'rules' | 'volume';
   setActiveTab: (tab: 'planner' | 'tracker' | 'rules' | 'volume') => void;
   onExport: () => void;
   onImport: () => void;
+  onSyncOura: () => void;
+  isSyncingOura: boolean;
   redisConnected: boolean;
 }
 
@@ -16,6 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   onExport,
   onImport,
+  onSyncOura,
+  isSyncingOura,
   redisConnected,
 }) => {
   return (
@@ -27,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Dumbbell className="w-5 h-5 text-slate-950 stroke-[2.5]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
                   Peter&apos;s Workout Planner
                 </h1>
@@ -52,7 +56,18 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
+          <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+            {/* Oura Sync Button */}
+            <button
+              onClick={onSyncOura}
+              disabled={isSyncingOura}
+              title="Sync Workouts & Readiness from Oura Ring"
+              className="px-3 py-1.5 text-xs font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 rounded-lg flex items-center gap-1.5 transition-all shadow-md shadow-cyan-500/15 disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingOura ? 'animate-spin' : ''}`} />
+              <span>{isSyncingOura ? 'Syncing...' : 'Sync Oura'}</span>
+            </button>
+
             <button
               onClick={onExport}
               title="Export JSON Backup"

@@ -28,6 +28,7 @@ export default function Home() {
   const [logs, setLogs] = useState<WorkoutLog[]>(INITIAL_LOGS);
   const [selectedDayForLog, setSelectedDayForLog] = useState<DayOfWeek>('Saturday');
   const [redisConnected, setRedisConnected] = useState<boolean>(false);
+  const [isSyncingOura, setIsSyncingOura] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
 
@@ -91,12 +92,10 @@ export default function Home() {
   };
 
   const handleSaveLog = async (newLog: WorkoutLog) => {
-    // Optimistic local update
     const updated = [newLog, ...logs.filter((l) => l.id !== newLog.id)];
     setLogs(updated);
     saveStoredLogs(updated);
 
-    // Sync to Redis
     try {
       const res = await fetch('/api/workout', {
         method: 'POST',
@@ -126,6 +125,33 @@ export default function Home() {
       } catch (e) {
         console.warn('Failed to delete log from Redis API:', e);
       }
+    }
+  };
+
+  const handleSyncOura = async () => {
+    setIsSyncingOura(true);
+    try {
+      const res = await fetch('/api/oura/sync', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logs) {
+          setLogs(data.logs);
+          saveStoredLogs(data.logs);
+        }
+        alert(
+          data.syncedCount > 0
+            ? `Successfully synced ${data.syncedCount} new workout(s) from Oura!`
+            : 'All Oura workouts are already up to date!'
+        );
+      } else {
+        const err = await res.json();
+        alert(`Oura sync error: ${err.error || 'Check OURA_TOKEN setting'}`);
+      }
+    } catch (e) {
+      console.error('Failed to sync Oura:', e);
+      alert('Network error while syncing with Oura API.');
+    } finally {
+      setIsSyncingOura(false);
     }
   };
 
@@ -192,6 +218,8 @@ export default function Home() {
         setActiveTab={setActiveTab}
         onExport={handleExport}
         onImport={() => setImportModalOpen(true)}
+        onSyncOura={handleSyncOura}
+        isSyncingOura={isSyncingOura}
         redisConnected={redisConnected}
       />
 
