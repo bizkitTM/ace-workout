@@ -23,21 +23,23 @@ export const INITIAL_SCHEDULE: DaySchedule[] = [
   {
     dayOfWeek: 'Monday',
     shortName: 'Mon',
-    primaryFocus: 'Upper Body Pull & Core',
+    primaryFocus: 'Upper Body Pull & 7-Min Core Challenge',
     modality: 'Resistance (Upper)',
     legImpact: 'None (Upper Focus)',
     isVolleyballDay: false,
     isLegDayAllowed: false,
     legRuleNote: 'BLOCKED: Legs in deep recovery from Sunday Volleyball. Focus 100% on back, biceps, and core.',
     whyItWorks: 'Back & pull muscles are completely fresh. Gives lower body full recovery before Tuesday volleyball.',
-    durationMinutes: 50,
+    durationMinutes: 55,
     intensity: 'Medium',
+    videoUrl: 'https://youtu.be/CI3o5FYbtOo',
+    videoTitle: 'Pamela Reif 7-Min Plank Challenge',
     targetExercises: [
       'Lat Pulldowns or Pull-ups (4x8-10)',
       'Seated Cable Rows (3x10-12)',
       'Face Pulls (3x15)',
       'Incline Dumbbell Curls (3x12)',
-      'Hanging Knee Raises / Planks (3 sets)'
+      'Pamela Reif 7-Min Plank Challenge (14 non-stop variations x 30s)'
     ]
   },
   {
@@ -145,6 +147,16 @@ export const INITIAL_RULES: DecisionRule[] = [
     constraint: 'Volleyball occurs 3x weekly (Tue, Thu, Sun). Heavy squats/deadlifts on the day of or day after volleyball causes acute tendon overload, DOMS, and destroys jump verticality.',
     rationale: 'Volleyball already delivers 200+ maximum-effort plyometric jumps per week. Adding heavy lifting during Sun-Fri creates overlapping eccentric damage on the knees and nervous system.',
     compromiseOrRule: 'Saturday is the dedicated Lower Body Strength anchor. Friday is kept to non-impact/cardio, leaving Saturday with zero prior-day volleyball and a clean 24-hour buffer before Sunday game play.',
+    status: 'Active Rule'
+  },
+  {
+    id: 'weekly-7min-plank-core',
+    title: 'Weekly Core Density: The 7-Minute Plank Protocol',
+    category: 'Legs & Recovery',
+    dateAdded: '2026-11-18',
+    constraint: 'Traditional spinal flexion ab work (crunches, sit-ups) aggravates lower back soreness after heavy volleyball jumping and Saturday deadlifts without building functional bracing stability.',
+    rationale: 'Pamela Reif’s 7-Minute Plank Challenge delivers 14 continuous 30-second isometric anti-extension and anti-rotation variations with zero rest. Isometric core endurance trains the exact abdominal wall stiffness needed to protect the spine during spikes and block landings.',
+    compromiseOrRule: 'Execute the Pamela Reif 7-Minute Plank Challenge once per week on Monday (post-upper pull) or Friday (post-cardio). Requires zero equipment and maximizes time efficiency.',
     status: 'Active Rule'
   },
   {

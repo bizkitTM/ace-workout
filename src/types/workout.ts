@@ -17,6 +17,8 @@ export interface DaySchedule {
   targetExercises?: string[];
   durationMinutes: number;
   intensity: 'High' | 'Medium' | 'Low' | 'Rest';
+  videoUrl?: string;
+  videoTitle?: string;
 }
 
 export interface DecisionRule {

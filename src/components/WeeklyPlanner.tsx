@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { DaySchedule, DayOfWeek } from '../types/workout';
-import { ShieldAlert, ShieldCheck, Flame, Clock, Dumbbell, ChevronDown, ChevronUp, Plus, CheckCircle2 } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Flame, Clock, Dumbbell, ChevronDown, ChevronUp, CheckCircle2, Play, ExternalLink } from 'lucide-react';
 
 interface WeeklyPlannerProps {
   schedule: DaySchedule[];
@@ -15,8 +15,7 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
   onSelectDayForLog,
   onUpdateDay,
 }) => {
-  const [expandedDay, setExpandedDay] = useState<DayOfWeek | null>('Saturday');
-  const [editingDay, setEditingDay] = useState<DayOfWeek | null>(null);
+  const [expandedDay, setExpandedDay] = useState<DayOfWeek | null>('Monday');
 
   const toggleExpand = (day: DayOfWeek) => {
     setExpandedDay(expandedDay === day ? null : day);
@@ -76,7 +75,7 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
               </span>
             </h2>
             <p className="text-sm text-slate-300 mt-1 max-w-3xl">
-              Volleyball on <strong className="text-amber-400">Tue / Thu / Sun</strong> delivers 200+ explosive jumps weekly. To prevent tendon strain and DOMS during matches, heavy leg compound lifting is isolated strictly to <strong className="text-emerald-400">Saturday</strong>.
+              Volleyball on <strong className="text-amber-400">Tue / Thu / Sun</strong> delivers 200+ explosive jumps weekly. Heavy leg compound lifting is isolated strictly to <strong className="text-emerald-400">Saturday</strong>. High-density core work is anchored on <strong className="text-cyan-400">Monday</strong>.
             </p>
           </div>
           <div className="flex items-center gap-3 self-start md:self-auto text-xs text-slate-400 bg-slate-950/60 px-3.5 py-2 rounded-xl border border-slate-800/80">
@@ -93,7 +92,7 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
             </div>
             <span>•</span>
             <div>
-              <span className="text-white font-bold">1x</span> VO2 Max
+              <span className="text-white font-bold">1x</span> 7-Min Core
             </div>
           </div>
         </div>
@@ -113,6 +112,8 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
                   ? 'bg-slate-900/90 border-amber-500/30 shadow-md shadow-amber-500/5'
                   : isSaturday
                   ? 'bg-slate-900/90 border-emerald-500/40 shadow-lg shadow-emerald-500/5 ring-1 ring-emerald-500/20'
+                  : item.dayOfWeek === 'Monday'
+                  ? 'bg-slate-900/80 border-cyan-500/30 shadow-md shadow-cyan-500/5'
                   : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
               }`}
             >
@@ -127,6 +128,8 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
                         ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                         : isSaturday
                         ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : item.dayOfWeek === 'Monday'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                         : 'bg-slate-800 text-slate-300 border border-slate-700'
                     }`}
                   >
@@ -187,7 +190,39 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
               {/* Expanded Details */}
               {isExpanded && (
                 <div className="px-4 pb-5 sm:px-5 sm:pb-5 pt-1 border-t border-slate-800/80 bg-slate-950/40 space-y-4 text-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                  
+                  {/* Featured Video Card if Present (e.g. 7-Min Plank Challenge) */}
+                  {item.videoUrl && (
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-950/30 via-slate-900 to-slate-900 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30">
+                          <Play className="w-4 h-4 fill-rose-400 text-rose-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-white flex items-center gap-2 flex-wrap">
+                            <span>{item.videoTitle || 'Guided Workout Video'}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 font-medium">
+                              7 Mins · No Equipment
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            14 continuous 30-sec plank variations with zero rest (Pamela Reif)
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href={item.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-1.5 text-xs font-bold rounded-lg bg-rose-500 hover:bg-rose-400 text-white flex items-center gap-1.5 shrink-0 transition-colors shadow-md shadow-rose-500/20 w-fit"
+                      >
+                        <span>Watch on YouTube</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
                       <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1.5">
                         <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
@@ -219,9 +254,17 @@ export const WeeklyPlanner: React.FC<WeeklyPlannerProps> = ({
                         {item.targetExercises.map((ex, idx) => (
                           <li
                             key={idx}
-                            className="flex items-center gap-2 bg-slate-800/40 px-2.5 py-1.5 rounded-lg border border-slate-700/40"
+                            className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border ${
+                              ex.includes('Plank')
+                                ? 'bg-rose-500/10 text-rose-200 border-rose-500/30 font-medium'
+                                : 'bg-slate-800/40 text-slate-300 border-slate-700/40'
+                            }`}
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                ex.includes('Plank') ? 'bg-rose-400' : 'bg-cyan-400'
+                              }`}
+                            />
                             <span>{ex}</span>
                           </li>
                         ))}
