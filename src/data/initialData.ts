@@ -203,6 +203,22 @@ export const INITIAL_RULES: DecisionRule[] = [
 
 export const INITIAL_LOGS: WorkoutLog[] = [
   {
+    id: 'log-2026-11-18',
+    date: '2026-11-18',
+    dayOfWeek: 'Wednesday',
+    title: '7-Minute Plank Challenge (Pamela Reif)',
+    modality: 'Resistance (Upper)',
+    completed: true,
+    durationMinutes: 7,
+    legFatigueRating: 2,
+    rpe: 8,
+    exercises: [
+      { id: '1', name: 'Pamela Reif 7-Min Plank Challenge (14 variations x 30s)', sets: 14, reps: '30s each', weight: 'Bodyweight' }
+    ],
+    notes: 'Completed the full 7-Minute Plank Challenge (14 continuous variations with zero rest) after weeks off. Excellent isometric core endurance and anti-extension bracing with zero lower-back strain or leg fatigue before Thursday volleyball.',
+    ouraReadinessScore: 68
+  },
+  {
     id: 'log-2026-11-17',
     date: '2026-11-17',
     dayOfWeek: 'Tuesday',
