@@ -191,6 +191,19 @@ export const INITIAL_RULES: DecisionRule[] = [
 
 export const INITIAL_LOGS: WorkoutLog[] = [
   {
+    id: 'log-2026-11-17',
+    date: '2026-11-17',
+    dayOfWeek: 'Tuesday',
+    title: 'Tuesday Volleyball Session',
+    modality: 'Volleyball',
+    completed: true,
+    durationMinutes: 90,
+    legFatigueRating: 4,
+    rpe: 8,
+    notes: 'Midweek volleyball match play + active movement. Crushed nearly 14,000 total steps on the day. High plyometric jump volume and lateral deceleration.',
+    ouraReadinessScore: 83
+  },
+  {
     id: 'log-2026-11-16',
     date: '2026-11-16',
     dayOfWeek: 'Monday',
