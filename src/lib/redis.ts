@@ -8,19 +8,28 @@ export function getRedis(): Redis | null {
   if (redis) return redis;
 
   const url = process.env.REDIS_URL;
-  if (!url) {
+  if (!url || url.trim() === '') {
     return null;
   }
 
   try {
     redis = new Redis(url, {
-      maxRetriesPerRequest: 3,
-      connectTimeout: 5000,
+      maxRetriesPerRequest: 1,
+      connectTimeout: 2500,
+      commandTimeout: 2500,
+      enableOfflineQueue: false,
       lazyConnect: true,
+      retryStrategy: () => null, // Don't loop retries on dead host
     });
+
+    // Suppress unhandled error crashes
+    redis.on('error', (err) => {
+      console.warn('Redis connection issue (app continuing in local mode):', err.message);
+    });
+
     return redis;
   } catch (err) {
-    console.error('Failed to initialize Redis client:', err);
+    console.warn('Failed to initialize Redis client:', err);
     return null;
   }
 }
@@ -49,23 +58,21 @@ export async function fetchWorkoutDataFromRedis(): Promise<{
 
   try {
     if (client.status === 'wait') {
-      await client.connect();
+      await Promise.race([
+        client.connect(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Redis connect timeout')), 2500)),
+      ]);
     }
 
     const [rawSchedule, rawRules, rawLogs] = await Promise.all([
-      client.get(REDIS_KEYS.schedule),
-      client.get(REDIS_KEYS.rules),
-      client.get(REDIS_KEYS.logs),
+      client.get(REDIS_KEYS.schedule).catch(() => null),
+      client.get(REDIS_KEYS.rules).catch(() => null),
+      client.get(REDIS_KEYS.logs).catch(() => null),
     ]);
 
     const schedule: DaySchedule[] = rawSchedule ? JSON.parse(rawSchedule) : INITIAL_SCHEDULE;
     const rules: DecisionRule[] = rawRules ? JSON.parse(rawRules) : INITIAL_RULES;
     const logs: WorkoutLog[] = rawLogs ? JSON.parse(rawLogs) : INITIAL_LOGS;
-
-    // Seed Redis if keys were empty
-    if (!rawSchedule) await client.set(REDIS_KEYS.schedule, JSON.stringify(INITIAL_SCHEDULE));
-    if (!rawRules) await client.set(REDIS_KEYS.rules, JSON.stringify(INITIAL_RULES));
-    if (!rawLogs) await client.set(REDIS_KEYS.logs, JSON.stringify(INITIAL_LOGS));
 
     return {
       schedule,
@@ -74,7 +81,7 @@ export async function fetchWorkoutDataFromRedis(): Promise<{
       redisConnected: true,
     };
   } catch (err) {
-    console.error('Error fetching workout data from Redis:', err);
+    console.warn('Redis unavailable, using local initial data:', err);
     return {
       schedule: INITIAL_SCHEDULE,
       rules: INITIAL_RULES,
@@ -92,15 +99,14 @@ export async function saveLogToRedis(log: WorkoutLog): Promise<boolean> {
     if (client.status === 'wait') {
       await client.connect();
     }
-    const rawLogs = await client.get(REDIS_KEYS.logs);
+    const rawLogs = await client.get(REDIS_KEYS.logs).catch(() => null);
     const logs: WorkoutLog[] = rawLogs ? JSON.parse(rawLogs) : INITIAL_LOGS;
     
-    // Prepend new log
     const updated = [log, ...logs.filter((l) => l.id !== log.id)];
     await client.set(REDIS_KEYS.logs, JSON.stringify(updated));
     return true;
   } catch (err) {
-    console.error('Failed to save log to Redis:', err);
+    console.warn('Failed to save log to Redis:', err);
     return false;
   }
 }
@@ -113,7 +119,7 @@ export async function deleteLogFromRedis(id: string): Promise<boolean> {
     if (client.status === 'wait') {
       await client.connect();
     }
-    const rawLogs = await client.get(REDIS_KEYS.logs);
+    const rawLogs = await client.get(REDIS_KEYS.logs).catch(() => null);
     if (!rawLogs) return true;
 
     const logs: WorkoutLog[] = JSON.parse(rawLogs);
@@ -121,7 +127,7 @@ export async function deleteLogFromRedis(id: string): Promise<boolean> {
     await client.set(REDIS_KEYS.logs, JSON.stringify(updated));
     return true;
   } catch (err) {
-    console.error('Failed to delete log from Redis:', err);
+    console.warn('Failed to delete log from Redis:', err);
     return false;
   }
 }
@@ -137,7 +143,7 @@ export async function saveScheduleToRedis(schedule: DaySchedule[]): Promise<bool
     await client.set(REDIS_KEYS.schedule, JSON.stringify(schedule));
     return true;
   } catch (err) {
-    console.error('Failed to save schedule to Redis:', err);
+    console.warn('Failed to save schedule to Redis:', err);
     return false;
   }
 }
@@ -153,7 +159,7 @@ export async function saveRulesToRedis(rules: DecisionRule[]): Promise<boolean> 
     await client.set(REDIS_KEYS.rules, JSON.stringify(rules));
     return true;
   } catch (err) {
-    console.error('Failed to save rules to Redis:', err);
+    console.warn('Failed to save rules to Redis:', err);
     return false;
   }
 }
