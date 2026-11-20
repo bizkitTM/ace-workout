@@ -94,6 +94,37 @@ export const DailyTracker: React.FC<DailyTrackerProps> = ({
     }
   };
 
+  // Helper to sort workouts: Latest date first, and within the same day, LATEST time first!
+  const getLogSortTime = (log: WorkoutLog): number => {
+    if (log.startDatetime) {
+      return new Date(log.startDatetime).getTime();
+    }
+    const m = (log.notes || '').match(/Time:\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (m) {
+      let h = parseInt(m[1], 10);
+      const min = parseInt(m[2], 10);
+      const ampm = m[3].toUpperCase();
+      if (ampm === 'PM' && h < 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      return h * 60 + min;
+    }
+    return 0;
+  };
+
+  const sortedLogs = [...logs].sort((a, b) => {
+    // 1. Date descending (latest date first)
+    if (a.date !== b.date) {
+      return a.date > b.date ? -1 : 1;
+    }
+    // 2. Within the same day: latest time FIRST!
+    const timeA = getLogSortTime(a);
+    const timeB = getLogSortTime(b);
+    if (timeA !== timeB) {
+      return timeB - timeA;
+    }
+    return (b.id || '').localeCompare(a.id || '');
+  });
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Logging Form */}
@@ -345,11 +376,11 @@ export const DailyTracker: React.FC<DailyTrackerProps> = ({
             <Activity className="w-4 h-4 text-cyan-400" />
             <span>Recent Training History</span>
           </h3>
-          <span className="text-xs text-slate-400">{logs.length} logged</span>
+          <span className="text-xs text-slate-400">{sortedLogs.length} logged</span>
         </div>
 
         <div className="space-y-3">
-          {logs.map((log) => (
+          {sortedLogs.map((log) => (
             <div
               key={log.id}
               className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5 shadow-md"
@@ -407,7 +438,7 @@ export const DailyTracker: React.FC<DailyTrackerProps> = ({
             </div>
           ))}
 
-          {logs.length === 0 && (
+          {sortedLogs.length === 0 && (
             <div className="p-8 text-center rounded-2xl bg-slate-900/40 border border-slate-800 text-slate-500 text-sm">
               No workouts logged yet. Use the form on the left to record your first workout!
             </div>

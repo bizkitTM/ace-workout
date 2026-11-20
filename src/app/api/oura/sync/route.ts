@@ -6,6 +6,22 @@ import { INITIAL_LOGS } from '@/data/initialData';
 
 export const dynamic = 'force-dynamic';
 
+function getWorkoutSortTime(log: WorkoutLog): number {
+  if (log.startDatetime) {
+    return new Date(log.startDatetime).getTime();
+  }
+  const m = (log.notes || '').match(/Time:\s*(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (m) {
+    let h = parseInt(m[1], 10);
+    const min = parseInt(m[2], 10);
+    const ampm = m[3].toUpperCase();
+    if (ampm === 'PM' && h < 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    return h * 60 + min;
+  }
+  return 0;
+}
+
 export async function POST() {
   try {
     // 1. Fetch workouts from Oura Cloud API (already filters out housework & formats in Eastern Time)
@@ -36,11 +52,9 @@ export async function POST() {
     const cleanManualLogs = currentLogs.filter((l) => {
       const titleLower = (l.title || '').toLowerCase();
       const notesLower = (l.notes || '').toLowerCase();
-      // Remove any housework
       if (titleLower.includes('housework') || notesLower.includes('housework')) {
         return false;
       }
-      // Keep manual user logs, purge older oura imports to re-sync cleanly
       if (l.id.startsWith('oura-')) {
         return false;
       }
@@ -48,7 +62,6 @@ export async function POST() {
     });
 
     // 4. Merge new correctly formatted Oura workouts with clean manual logs
-    // Avoid duplicate if manual log on the same date has the same modality
     const finalOuraLogs = ouraWorkouts.filter((ow) => {
       const alreadyHasManual = cleanManualLogs.some(
         (ml) => ml.date === ow.date && ml.modality === ow.modality
@@ -58,8 +71,18 @@ export async function POST() {
 
     const mergedLogs = [...finalOuraLogs, ...cleanManualLogs];
 
-    // Sort by date descending
-    mergedLogs.sort((a, b) => (a.date > b.date ? -1 : 1));
+    // Sort: Latest date first. Within the same day, latest time FIRST!
+    mergedLogs.sort((a, b) => {
+      if (a.date !== b.date) {
+        return a.date > b.date ? -1 : 1;
+      }
+      const timeA = getWorkoutSortTime(a);
+      const timeB = getWorkoutSortTime(b);
+      if (timeA !== timeB) {
+        return timeB - timeA; // Latest time on that day comes first!
+      }
+      return (b.id || '').localeCompare(a.id || '');
+    });
 
     // 5. Save back to Redis
     if (client) {

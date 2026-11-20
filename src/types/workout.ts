@@ -52,6 +52,7 @@ export interface CardioLog {
 export interface WorkoutLog {
   id: string;
   date: string; // YYYY-MM-DD
+  startDatetime?: string; // ISO datetime e.g. 2026-11-19T18:54:00.000-05:00
   dayOfWeek: DayOfWeek;
   title: string;
   modality: Modality;

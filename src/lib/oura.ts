@@ -134,6 +134,7 @@ export async function fetchOuraWorkouts(daysBack: number = 14): Promise<WorkoutL
     return {
       id: `oura-${w.id}`,
       date: w.day,
+      startDatetime: w.start_datetime, // Preserves exact ISO timestamp with timezone for sorting
       dayOfWeek,
       title,
       modality,
