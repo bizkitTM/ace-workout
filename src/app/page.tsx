@@ -22,7 +22,7 @@ import { INITIAL_SCHEDULE, INITIAL_RULES, INITIAL_LOGS } from '@/data/initialDat
 const DAYS_OF_WEEK: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'planner' | 'tracker' | 'rules' | 'volume'>('planner');
+  const [activeTab, setActiveTab] = useState<'planner' | 'tracker' | 'rules' | 'volume'>('tracker');
   const [schedule, setSchedule] = useState<DaySchedule[]>(INITIAL_SCHEDULE);
   const [rules, setRules] = useState<DecisionRule[]>(INITIAL_RULES);
   const [logs, setLogs] = useState<WorkoutLog[]>(INITIAL_LOGS);

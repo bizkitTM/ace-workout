@@ -101,18 +101,6 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Tab Navigation */}
         <div className="flex space-x-1 sm:space-x-2 border-t border-slate-800/60 pt-2 pb-2 overflow-x-auto no-scrollbar">
           <button
-            onClick={() => setActiveTab('planner')}
-            className={`px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
-              activeTab === 'planner'
-                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Weekly Matrix</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('tracker')}
             className={`px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
               activeTab === 'tracker'
@@ -122,6 +110,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>Daily Tracker</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('planner')}
+            className={`px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all whitespace-nowrap ${
+              activeTab === 'planner'
+                ? 'bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Weekly Matrix</span>
           </button>
 
           <button
