@@ -63,11 +63,34 @@ export async function fetchOuraWorkouts(daysBack: number = 14): Promise<WorkoutL
     });
   }
 
-  return rawWorkouts.map((w) => {
+  // Eastern Time formatter for Peter (America/New_York)
+  const timeFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  const dayOfWeekFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    weekday: 'long',
+  });
+
+  // Filter out housework and low-intensity passive chores
+  const filteredWorkouts = rawWorkouts.filter((w) => {
+    const act = (w.activity || '').toLowerCase();
+    const lbl = (w.label || '').toLowerCase();
+    if (act.includes('housework') || lbl.includes('housework')) return false;
+    return true;
+  });
+
+  return filteredWorkouts.map((w) => {
     const start = new Date(w.start_datetime);
     const end = new Date(w.end_datetime);
     const durationMinutes = Math.max(1, Math.round((end.getTime() - start.getTime()) / 60000));
-    const dayOfWeek = DAYS_OF_WEEK[start.getDay()];
+    
+    // Calculate Day of Week in Eastern Time
+    const dayOfWeek = dayOfWeekFormatter.format(start) as DayOfWeek;
 
     let modality: Modality = 'Active Recovery';
     let title = `${w.activity.charAt(0).toUpperCase() + w.activity.slice(1)} Session`;
@@ -95,7 +118,7 @@ export async function fetchOuraWorkouts(daysBack: number = 14): Promise<WorkoutL
       title = `${dayOfWeek} VO2 Max / Cardio Session`;
       legFatigueRating = 3;
       rpe = 8;
-    } else if (actLower.includes('walk') || actLower.includes('housework')) {
+    } else if (actLower.includes('walk') || actLower.includes('yardwork')) {
       modality = 'Active Recovery';
       title = `${w.label || w.activity} (Active Movement)`;
       legFatigueRating = 1;
@@ -104,6 +127,9 @@ export async function fetchOuraWorkouts(daysBack: number = 14): Promise<WorkoutL
 
     const burnedCalories = Math.round(w.calories);
     const readinessScore = readinessMap[w.day];
+
+    const formattedStart = timeFormatter.format(start);
+    const formattedEnd = timeFormatter.format(end);
 
     return {
       id: `oura-${w.id}`,
@@ -115,7 +141,7 @@ export async function fetchOuraWorkouts(daysBack: number = 14): Promise<WorkoutL
       durationMinutes,
       legFatigueRating,
       rpe,
-      notes: `Imported from Oura Ring · ${burnedCalories} kcal burned · Intensity: ${w.intensity} · Time: ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      notes: `Imported from Oura Ring · ${burnedCalories} kcal burned · Intensity: ${w.intensity} · Time: ${formattedStart} - ${formattedEnd}`,
       ouraReadinessScore: readinessScore,
     };
   });

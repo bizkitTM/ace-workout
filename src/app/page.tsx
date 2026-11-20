@@ -32,11 +32,20 @@ export default function Home() {
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [importJson, setImportJson] = useState('');
 
-  // 1. Initial hydration from localStorage
+  // 1. Initial hydration from localStorage (with housework filter cleanup)
   useEffect(() => {
     setSchedule(getStoredSchedule());
     setRules(getStoredRules());
-    setLogs(getStoredLogs());
+    
+    // Purge any housework entries from local storage
+    const rawLogs = getStoredLogs();
+    const cleanInitialLogs = rawLogs.filter((l) => {
+      const t = (l.title || '').toLowerCase();
+      const n = (l.notes || '').toLowerCase();
+      return !t.includes('housework') && !n.includes('housework');
+    });
+    setLogs(cleanInitialLogs);
+    saveStoredLogs(cleanInitialLogs);
 
     const currentDayIndex = new Date().getDay();
     setSelectedDayForLog(DAYS_OF_WEEK[currentDayIndex]);
@@ -56,8 +65,13 @@ export default function Home() {
             saveStoredRules(data.rules);
           }
           if (data.logs && data.logs.length > 0) {
-            setLogs(data.logs);
-            saveStoredLogs(data.logs);
+            const cleanRedisLogs = data.logs.filter((l: WorkoutLog) => {
+              const t = (l.title || '').toLowerCase();
+              const n = (l.notes || '').toLowerCase();
+              return !t.includes('housework') && !n.includes('housework');
+            });
+            setLogs(cleanRedisLogs);
+            saveStoredLogs(cleanRedisLogs);
           }
           setRedisConnected(Boolean(data.redisConnected));
         }
@@ -135,12 +149,18 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         if (data.logs) {
-          setLogs(data.logs);
-          saveStoredLogs(data.logs);
+          // Filter out housework
+          const cleanLogs = data.logs.filter((l: WorkoutLog) => {
+            const t = (l.title || '').toLowerCase();
+            const n = (l.notes || '').toLowerCase();
+            return !t.includes('housework') && !n.includes('housework');
+          });
+          setLogs(cleanLogs);
+          saveStoredLogs(cleanLogs);
         }
         alert(
           data.syncedCount > 0
-            ? `Successfully synced ${data.syncedCount} new workout(s) from Oura!`
+            ? `Successfully synced ${data.syncedCount} workout(s) from Oura!`
             : 'All Oura workouts are already up to date!'
         );
       } else {

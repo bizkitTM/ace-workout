@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    // 1. Fetch workouts from Oura Cloud API
+    // 1. Fetch workouts from Oura Cloud API (already filters out housework & formats in Eastern Time)
     const ouraWorkouts = await fetchOuraWorkouts(14);
 
     // 2. Load existing logs from Redis (or fallback to initial logs)
@@ -31,26 +31,38 @@ export async function POST() {
       client = null;
     }
 
-    // 3. Deduplicate and merge: Don't add if already exists by id, or date + same modality
-    const existingIds = new Set(currentLogs.map((l) => l.id));
-    const newLogs: WorkoutLog[] = [];
-
-    for (const w of ouraWorkouts) {
-      if (!existingIds.has(w.id)) {
-        const alreadyLoggedSameModality = currentLogs.some(
-          (l) => l.date === w.date && l.modality === w.modality && !l.id.startsWith('oura-')
-        );
-        if (!alreadyLoggedSameModality) {
-          newLogs.push(w);
-          existingIds.add(w.id);
-        }
+    // 3. Clean up: Remove any existing housework entries and any existing Oura-imported entries
+    // so they get cleanly replaced by the corrected Eastern Time versions!
+    const cleanManualLogs = currentLogs.filter((l) => {
+      const titleLower = (l.title || '').toLowerCase();
+      const notesLower = (l.notes || '').toLowerCase();
+      // Remove any housework
+      if (titleLower.includes('housework') || notesLower.includes('housework')) {
+        return false;
       }
-    }
+      // Keep manual user logs, purge older oura imports to re-sync cleanly
+      if (l.id.startsWith('oura-')) {
+        return false;
+      }
+      return true;
+    });
 
-    const mergedLogs = [...newLogs, ...currentLogs];
+    // 4. Merge new correctly formatted Oura workouts with clean manual logs
+    // Avoid duplicate if manual log on the same date has the same modality
+    const finalOuraLogs = ouraWorkouts.filter((ow) => {
+      const alreadyHasManual = cleanManualLogs.some(
+        (ml) => ml.date === ow.date && ml.modality === ow.modality
+      );
+      return !alreadyHasManual;
+    });
 
-    // 4. Try saving merged logs back to Redis (non-blocking / safe)
-    if (client && newLogs.length > 0) {
+    const mergedLogs = [...finalOuraLogs, ...cleanManualLogs];
+
+    // Sort by date descending
+    mergedLogs.sort((a, b) => (a.date > b.date ? -1 : 1));
+
+    // 5. Save back to Redis
+    if (client) {
       try {
         await client.set(REDIS_KEYS.logs, JSON.stringify(mergedLogs));
       } catch (redisWriteErr) {
@@ -58,10 +70,9 @@ export async function POST() {
       }
     }
 
-    // Always return success with the synced logs so frontend can update localStorage!
     return NextResponse.json({
       success: true,
-      syncedCount: newLogs.length,
+      syncedCount: finalOuraLogs.length,
       logs: mergedLogs,
     });
   } catch (error: any) {
