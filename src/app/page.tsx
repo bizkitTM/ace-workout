@@ -50,30 +50,51 @@ export default function Home() {
     const currentDayIndex = new Date().getDay();
     setSelectedDayForLog(DAYS_OF_WEEK[currentDayIndex]);
 
-    // 2. Fetch latest data from Redis API
+    // 2. Fetch latest data from Redis API (only syncs/overwrites if Redis is ACTUALLY connected)
     const syncFromRedis = async () => {
       try {
         const res = await fetch('/api/workout');
         if (res.ok) {
           const data = await res.json();
-          if (data.schedule && data.schedule.length > 0) {
-            setSchedule(data.schedule);
-            saveStoredSchedule(data.schedule);
-          }
-          if (data.rules && data.rules.length > 0) {
-            setRules(data.rules);
-            saveStoredRules(data.rules);
-          }
-          if (data.logs && data.logs.length > 0) {
-            const cleanRedisLogs = data.logs.filter((l: WorkoutLog) => {
-              const t = (l.title || '').toLowerCase();
-              const n = (l.notes || '').toLowerCase();
-              return !t.includes('housework') && !n.includes('housework');
-            });
-            setLogs(cleanRedisLogs);
-            saveStoredLogs(cleanRedisLogs);
-          }
           setRedisConnected(Boolean(data.redisConnected));
+
+          // CRITICAL FIX: If in Local Mode (Redis not connected), NEVER overwrite user's localStorage with initial defaults!
+          if (data.redisConnected) {
+            if (data.schedule && data.schedule.length > 0) {
+              setSchedule(data.schedule);
+              saveStoredSchedule(data.schedule);
+            }
+            if (data.rules && data.rules.length > 0) {
+              setRules(data.rules);
+              saveStoredRules(data.rules);
+            }
+            if (data.logs && data.logs.length > 0) {
+              const cleanRedisLogs = data.logs.filter((l: WorkoutLog) => {
+                const t = (l.title || '').toLowerCase();
+                const n = (l.notes || '').toLowerCase();
+                return !t.includes('housework') && !n.includes('housework');
+              });
+              // Merge with local logs by ID so nothing is ever lost
+              const localMap = new Map(cleanInitialLogs.map((l) => [l.id, l]));
+              cleanRedisLogs.forEach((l: WorkoutLog) => localMap.set(l.id, l));
+              const merged = Array.from(localMap.values());
+              setLogs(merged);
+              saveStoredLogs(merged);
+            }
+          } else {
+            // In Local Mode, merge any default initial logs that might be missing, but NEVER wipe existing local logs!
+            if (data.logs && data.logs.length > 0) {
+              const localMap = new Map(cleanInitialLogs.map((l) => [l.id, l]));
+              data.logs.forEach((l: WorkoutLog) => {
+                if (!localMap.has(l.id)) {
+                  localMap.set(l.id, l);
+                }
+              });
+              const merged = Array.from(localMap.values());
+              setLogs(merged);
+              saveStoredLogs(merged);
+            }
+          }
         }
       } catch (err) {
         console.warn('Could not sync with Redis, running in local mode:', err);

@@ -213,6 +213,34 @@ export const INITIAL_RULES: DecisionRule[] = [
 
 export const INITIAL_LOGS: WorkoutLog[] = [
   {
+    id: 'oura-2026-11-19-vb-main',
+    date: '2026-11-19',
+    startDatetime: '2026-11-19T18:54:00.000-05:00',
+    dayOfWeek: 'Thursday',
+    title: 'Thursday Volleyball Match Session',
+    modality: 'Volleyball',
+    completed: true,
+    durationMinutes: 97,
+    legFatigueRating: 4,
+    rpe: 8,
+    notes: 'Imported from Oura Ring · 528 kcal burned · Intensity: moderate · Time: 6:54 PM - 8:31 PM',
+    ouraReadinessScore: 76
+  },
+  {
+    id: 'oura-2026-11-19-vb-warmup',
+    date: '2026-11-19',
+    startDatetime: '2026-11-19T16:52:00.000-05:00',
+    dayOfWeek: 'Thursday',
+    title: 'Thursday Volleyball Match Session',
+    modality: 'Volleyball',
+    completed: true,
+    durationMinutes: 13,
+    legFatigueRating: 3,
+    rpe: 6,
+    notes: 'Imported from Oura Ring · 54 kcal burned · Intensity: moderate · Time: 4:52 PM - 5:05 PM',
+    ouraReadinessScore: 76
+  },
+  {
     id: 'log-2026-11-19-jump-training',
     date: '2026-11-19',
     startDatetime: '2026-11-19T16:30:00.000-05:00',
