@@ -22,8 +22,11 @@ function getWorkoutSortTime(log: WorkoutLog): number {
   return 0;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const body = await request.json().catch(() => ({}));
+    const clientExistingIds = new Set<string>(body.existingIds || []);
+
     // 1. Fetch workouts from Oura Cloud API (already filters out housework & formats in Eastern Time)
     const ouraWorkouts = await fetchOuraWorkouts(14);
 
@@ -48,7 +51,6 @@ export async function POST() {
     }
 
     // 3. Clean up: Remove any existing housework entries and any existing Oura-imported entries
-    // so they get cleanly replaced by the corrected Eastern Time versions!
     const cleanManualLogs = currentLogs.filter((l) => {
       const titleLower = (l.title || '').toLowerCase();
       const notesLower = (l.notes || '').toLowerCase();
@@ -68,6 +70,9 @@ export async function POST() {
       );
       return !alreadyHasManual;
     });
+
+    // Calculate how many workouts are ACTUALLY new to the client's current history
+    const newlyAddedCount = finalOuraLogs.filter((w) => !clientExistingIds.has(w.id)).length;
 
     const mergedLogs = [...finalOuraLogs, ...cleanManualLogs];
 
@@ -95,7 +100,8 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      syncedCount: finalOuraLogs.length,
+      newCount: newlyAddedCount,
+      totalOuraCount: finalOuraLogs.length,
       logs: mergedLogs,
     });
   } catch (error: any) {

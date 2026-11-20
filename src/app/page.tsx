@@ -145,11 +145,15 @@ export default function Home() {
   const handleSyncOura = async () => {
     setIsSyncingOura(true);
     try {
-      const res = await fetch('/api/oura/sync', { method: 'POST' });
+      const existingIds = logs.map((l) => l.id);
+      const res = await fetch('/api/oura/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ existingIds }),
+      });
       if (res.ok) {
         const data = await res.json();
         if (data.logs) {
-          // Filter out housework
           const cleanLogs = data.logs.filter((l: WorkoutLog) => {
             const t = (l.title || '').toLowerCase();
             const n = (l.notes || '').toLowerCase();
@@ -158,11 +162,13 @@ export default function Home() {
           setLogs(cleanLogs);
           saveStoredLogs(cleanLogs);
         }
-        alert(
-          data.syncedCount > 0
-            ? `Successfully synced ${data.syncedCount} workout(s) from Oura!`
-            : 'All Oura workouts are already up to date!'
-        );
+        
+        // Report the ACTUAL number of newly imported workouts!
+        if (data.newCount > 0) {
+          alert(`Successfully imported ${data.newCount} new workout(s) from Oura!`);
+        } else {
+          alert(`All workouts are up to date! 0 new workouts to import (${data.totalOuraCount || 0} already in your history).`);
+        }
       } else {
         const err = await res.json();
         alert(`Oura sync error: ${err.error || 'Check OURA_TOKEN setting'}`);
