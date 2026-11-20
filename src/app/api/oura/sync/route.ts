@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const clientExistingIds = new Set<string>(body.existingIds || []);
 
-    // 1. Fetch workouts from Oura Cloud API (already filters out housework & formats in Eastern Time)
+    // 1. Fetch workouts from Oura Cloud API (filters out housework & formats in Eastern Time)
     const ouraWorkouts = await fetchOuraWorkouts(14);
 
     // 2. Load existing logs from Redis (or fallback to initial logs)
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
       client = null;
     }
 
-    // 3. Clean up: Remove any existing housework entries and any existing Oura-imported entries
+    // 3. Clean up: Keep all manual user logs (bench press, jump training, etc.)
+    // Remove any housework entries and purge previous Oura imports to re-merge cleanly
     const cleanManualLogs = currentLogs.filter((l) => {
       const titleLower = (l.title || '').toLowerCase();
       const notesLower = (l.notes || '').toLowerCase();
@@ -63,13 +64,9 @@ export async function POST(request: Request) {
       return true;
     });
 
-    // 4. Merge new correctly formatted Oura workouts with clean manual logs
-    const finalOuraLogs = ouraWorkouts.filter((ow) => {
-      const alreadyHasManual = cleanManualLogs.some(
-        (ml) => ml.date === ow.date && ml.modality === ow.modality
-      );
-      return !alreadyHasManual;
-    });
+    // 4. Merge ALL Oura workouts with manual logs!
+    // Never filter out volleyball matches just because user did jump training or lifting on the same day!
+    const finalOuraLogs = ouraWorkouts;
 
     // Calculate how many workouts are ACTUALLY new to the client's current history
     const newlyAddedCount = finalOuraLogs.filter((w) => !clientExistingIds.has(w.id)).length;
