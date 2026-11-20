@@ -140,6 +140,16 @@ export const INITIAL_SCHEDULE: DaySchedule[] = [
 
 export const INITIAL_RULES: DecisionRule[] = [
   {
+    id: 'plyometric-jump-training-protocol',
+    title: 'Volleyball Plyometric Jump Training Protocol',
+    category: 'Volleyball Constraint',
+    dateAdded: '2026-11-20',
+    constraint: 'Volleyball vertical jump height and spike penetration require high-velocity stretch-shortening cycle (SSC) training, which heavy slow barbell squats alone cannot provide.',
+    rationale: 'Depth jumps (jumping off a block and immediately rebounding upward) train fast ground contact time and eccentric tendon stiffness. Standing broad jumps develop horizontal-to-vertical hip extension. Full approach jumps refine sport-specific penultimate step mechanics.',
+    compromiseOrRule: 'Execute the Plyometric Jump Routine (100 Jump Rope reps warmup -> Depth Jumps 3x6 -> Standing Broad Jumps 3x5 -> Spike Approach Jumps 5 reps) 1-2x weekly prior to volleyball match play or on court days.',
+    status: 'Active Rule'
+  },
+  {
     id: 'volleyball-leg-constraint',
     title: 'The Volleyball Adjacency Rule (Why Legs Are Saturday Only)',
     category: 'Legs & Recovery',
@@ -202,6 +212,26 @@ export const INITIAL_RULES: DecisionRule[] = [
 ];
 
 export const INITIAL_LOGS: WorkoutLog[] = [
+  {
+    id: 'log-2026-11-19-jump-training',
+    date: '2026-11-19',
+    startDatetime: '2026-11-19T16:30:00.000-05:00',
+    dayOfWeek: 'Thursday',
+    title: 'Plyometric Jump Training',
+    modality: 'Volleyball',
+    completed: true,
+    durationMinutes: 25,
+    legFatigueRating: 4,
+    rpe: 8,
+    exercises: [
+      { id: '1', name: 'Jump Rope Warmup', sets: 1, reps: '100 reps', weight: 'Bodyweight' },
+      { id: '2', name: 'Depth Jumps (Box drop & rebound jump)', sets: 3, reps: '6 reps', weight: 'Bodyweight' },
+      { id: '3', name: 'Standing Broad Jumps', sets: 3, reps: '5 reps', weight: 'Max distance' },
+      { id: '4', name: 'Volleyball Approach Jumps', sets: 1, reps: '5 reps', weight: 'Full approach' }
+    ],
+    notes: 'Pre-volleyball plyometric jump training. Focused on reactive ground contact time, explosive vertical takeoff, and spike approach mechanics. 100 jump rope reps prior to workout. Performed regularly during the week.',
+    ouraReadinessScore: 76
+  },
   {
     id: 'log-2026-11-18',
     date: '2026-11-18',

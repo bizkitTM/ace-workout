@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { WorkoutLog, DaySchedule, Modality, DayOfWeek } from '../types/workout';
-import { CheckCircle2, Plus, Trash2, Calendar, Dumbbell, Activity, Heart, Sparkles, MessageSquare } from 'lucide-react';
+import { Zap, CheckCircle2, Plus, Trash2, Calendar, Dumbbell, Activity, Heart, Sparkles, MessageSquare } from 'lucide-react';
 
 interface DailyTrackerProps {
   logs: WorkoutLog[];
@@ -55,7 +55,23 @@ export const DailyTracker: React.FC<DailyTrackerProps> = ({
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  
+  const loadJumpTrainingTemplate = () => {
+    setTitle('Plyometric Jump Training');
+    setModality('Volleyball');
+    setDurationMinutes(25);
+    setLegFatigue(4);
+    setRpe(8);
+    setExercises([
+      { id: '1', name: 'Jump Rope Warmup', sets: 1, reps: '100 reps', weight: 'Bodyweight' },
+      { id: '2', name: 'Depth Jumps (Box drop & rebound jump)', sets: 3, reps: '6 reps', weight: 'Bodyweight' },
+      { id: '3', name: 'Standing Broad Jumps', sets: 3, reps: '5 reps', weight: 'Max distance' },
+      { id: '4', name: 'Volleyball Approach Jumps', sets: 1, reps: '5 reps', weight: 'Full approach' }
+    ]);
+    setNotes('Pre-volleyball plyometric jump training session. Focused on reactive ground contact time, explosive vertical takeoff, and spike approach mechanics. 100 jump rope reps warmup prior to workout.');
+  };
+
+const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newLog: WorkoutLog = {
       id: `log-${Date.now()}`,
@@ -144,14 +160,25 @@ export const DailyTracker: React.FC<DailyTrackerProps> = ({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400">Completed?</span>
-              <input
-                type="checkbox"
-                checked={completed}
-                onChange={(e) => setCompleted(e.target.checked)}
-                className="w-5 h-5 rounded accent-emerald-500 cursor-pointer"
-              />
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={loadJumpTrainingTemplate}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20 transition-all flex items-center gap-1 cursor-pointer"
+                title="Auto-fill the 100 Jump Rope + Plyo Box & Broad Jump workout"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <span>Quick Load: Jump Training</span>
+              </button>
+              <div className="flex items-center gap-1.5 ml-1">
+                <span className="text-xs text-slate-400">Completed?</span>
+                <input
+                  type="checkbox"
+                  checked={completed}
+                  onChange={(e) => setCompleted(e.target.checked)}
+                  className="w-5 h-5 rounded accent-emerald-500 cursor-pointer"
+                />
+              </div>
             </div>
           </div>
 
